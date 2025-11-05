@@ -11,6 +11,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@weejewel/samsung-mdc": "^1.0.0",
     "connect-mongo": "^5.1.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
