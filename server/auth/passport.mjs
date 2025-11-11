@@ -28,7 +28,7 @@ passport.use(new LocalStrategy({usernameField: 'email', passwordField: 'password
 }))
 
 
-passport.use(new GoogleStrategy({
+/*passport.use(new GoogleStrategy({
     clientID: process.env.GOOG_CLIENT_ID, 
     clientSecret: process.env.GOOG_CLIENT_SECRET, 
     callbackURL: "http://localhost:5050/members/auth/google/callback"
@@ -46,7 +46,7 @@ passport.use(new GoogleStrategy({
         console.log(err)
         return done(err, null)
     }
-}))
+}))*/
 
 passport.serializeUser((user, done) => {
     console.log("Serializing user:", user); 

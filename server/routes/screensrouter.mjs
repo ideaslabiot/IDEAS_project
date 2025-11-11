@@ -1,5 +1,7 @@
 import express from "express";
 // import db from "../db/conn.mjs"
+import fs from 'fs'; // used to connect to temp data in json file (can remove later if db is used)
+import path from "path"; // to handle file paths
 import 'dotenv/config';
 import net from 'net';
 import arp from "@network-utils/arp-lookup"
@@ -202,8 +204,7 @@ async function findDeviceByMac(targetMac, subnet) {
     
     const normalizedTarget = targetMac.toLowerCase().replace(/[:-]/g, '');
     
-    // Step 1: Find all devices on port 1515
-    console.log('Step 1: Scanning for MDC devices on port 1515...');
+    console.log('find MDC devices on port 1515 (default)');
     const scanPromises = [];
     
     for (let i = 1; i < 255; i++) {
@@ -234,8 +235,7 @@ async function findDeviceByMac(targetMac, subnet) {
         return matchedIp;
     }
     
-    // Step 2: If not found, try brute force ARP scan
-    console.log('Step 2: Performing comprehensive ARP scan...');
+    console.log('Scanning for device');
     
     const pingPromises = [];
     for (let i = 1; i < 255; i++) {
@@ -290,13 +290,13 @@ function getLocalSubnet() {
     return '192.168.1';
 }
 
-async function prepare_addresses() {
+async function prepare_addresses(target) {
     const subnet = getLocalSubnet();
-    const targetMac = "c8:12:0b:a7:63:b7";
+    const targetMac = target//"c8:12:0b:a7:63:b7";
     
     try {
         const ip_address = await findDeviceByMac(targetMac, subnet);
-        console.log(`✓ Samsung display found at: ${ip_address}`);
+        console.log(`Samsung display found at: ${ip_address}`);
         display = new SamsungMDC(ip_address, 1515, 0);
     } catch (error) {
         console.error(`Failed to find device: ${error.message}`);
@@ -304,39 +304,134 @@ async function prepare_addresses() {
     }
 }
 
-await prepare_addresses();
+//await prepare_addresses();
 
 const router = express.Router();
+const filePath = path.resolve("./data/screens.json");
+const dir = path.dirname(filePath);
+if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
+// Read screens
+function getScreens() {
+  if (!fs.existsSync(filePath)) return [];
+  try {
+    const data = fs.readFileSync(filePath, "utf-8");
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+}
+
+// Save screens
+function saveScreens(screens) {
+  fs.writeFileSync(filePath, JSON.stringify(screens, null, 2));
+}
+
+router.get("/", (req, res) => {
+  res.json(getScreens());
+});
+
+router.post("/", (req, res) => {
+  const screens = getScreens();
+  const { name, ip, port = 1515, displayId = 0 } = req.body;
+
+  if (!name || !ip) return res.status(400).json({ message: "Name and IP are required" });
+  if (screens.find(s => s.name === name)){
+    return res.status(400).json({ message: "Screen name already exists" });
+  }
+  if (screens.find(s => s.ip === ip)){
+    return res.status(400).json({ message: "IP is already used" });
+  }
+
+  const newScreen = { id: Date.now(), name, ip, port, displayId };
+  screens.push(newScreen);
+  saveScreens(screens);
+
+  res.status(201).json(newScreen);
+});
+
+router.put("/:id", (req, res) => {
+  const screens = getScreens();
+  const id = Number(req.params.id);
+  const { name } = req.body;
+
+  const screen = screens.find(s => s.id === id);
+  if (!screen){
+    return res.status(404).json({ message: "Screen not found" });
+  }
+  if (screens.find(s => s.name === name && s.id !== id)){
+    return res.status(400).json({ message: "Screen name already exists" });
+  }
+  screen.name = name || screen.name;
+  saveScreens(screens);
+  res.json(screen);
+});
+
+router.delete("/:id", (req, res) => {
+  const screens = getScreens();
+  const id = Number(req.params.id);
+
+  const screenIndex = screens.findIndex(s => s.id === id);
+
+  if (screenIndex === -1) {
+    return res.status(404).json({ message: "Screen not found" });
+  }
+
+  // Remove the screen from the array
+  const deletedScreen = screens.splice(screenIndex, 1)[0];
+
+  // Save updated list
+  saveScreens(screens);
+
+  res.json({
+    message: `Screen "${deletedScreen.name}" deleted successfully`,
+    deleted: deletedScreen
+  });
+});
 
 // Add power on endpoint
-router.post("/power/on", async (req, res) => {
-    try {
-        const result = await display.powerOn();
-        res.status(200).json(result);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
+router.post("/:id/power/on", async (req, res) => {
+  const screens = getScreens();
+  const screen = screens.find(s => s.id === Number(req.params.id));
+  if (!screen) return res.status(404).json({ message: "Not found" });
+
+  const display = new SamsungMDC(screen.ip, screen.port, screen.displayId);
+  try {
+    const result = await display.powerOn();
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
 // Add power off endpoint
-router.post("/power/off", async (req, res) => {
-    try {
-        const result = await display.powerOff();
-        res.status(200).json(result);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
+router.post("/:id/power/off", async (req, res) => {
+  const screens = getScreens();
+  const screen = screens.find(s => s.id === Number(req.params.id));
+  if (!screen) return res.status(404).json({ message: "Not found" });
+
+  const display = new SamsungMDC(screen.ip, screen.port, screen.displayId);
+  try {
+    const result = await display.powerOff();
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
 // Status endpoint
-router.get("/status", async (req, res) => {
-    try {
-        const status = await display.getPowerStatus();
-        console.log('Power status:', status.state);
-        res.status(200).json({ message: status.state });
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
+router.get("/:id/status", async (req, res) => {
+  const screens = getScreens();
+  const screen = screens.find(s => s.id === Number(req.params.id));
+  if (!screen) return res.status(404).json({ message: "Not found" });
+
+  const display = new SamsungMDC(screen.ip, screen.port, screen.displayId);
+  try {
+    const status = await display.getPowerStatus();
+    res.json(status);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
 export default router;
