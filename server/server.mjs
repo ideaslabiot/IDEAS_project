@@ -3,7 +3,7 @@ import cors from "cors";
 import session from "express-session"
 import MongoStore from "connect-mongo";
 import passport from "passport";
-import "./auth/passport.mjs"
+// import "./auth/passport.mjs"
 import 'dotenv/config';
 import 'http';
 
@@ -13,7 +13,7 @@ import { dirname } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-import userrouter from "./routes/userrouter.mjs";
+// import userrouter from "./routes/userrouter.mjs";
 import lightsrouter from "./routes/lightsrouter.mjs";
 import pcrouter from "./routes/pcrouter.mjs";
 import projectorrouter from "./routes/projecterrouter.mjs";
@@ -22,7 +22,7 @@ import screensrouter from "./routes/screensrouter.mjs"
 // CHECK ideascomment (IDC) for changes and notes
 
 const PORT = process.env.PORT || 5050;
-const hostname = "192.168.1.218" //IDC: replace with wtv static ip we are using
+const hostname = "192.168.1.199" //IDC: replace with wtv static ip we are using
 const app = express();
 
 app.use(cors( {

@@ -10,7 +10,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import os from 'os';
 
-var display; //temp for testing replace with recorsd in json file or db later
+var display_devices = []; //temp for testing replace with recorsd in json file or db later
 
 class SamsungMDC {
     constructor(host, port = 1515, displayId = 0) {
@@ -297,7 +297,7 @@ async function prepare_addresses(target) {
     try {
         const ip_address = await findDeviceByMac(targetMac, subnet);
         console.log(`Samsung display found at: ${ip_address}`);
-        display = new SamsungMDC(ip_address, 1515, 0);
+        display_devices.push(new SamsungMDC(ip_address, 1515, 0));
     } catch (error) {
         console.error(`Failed to find device: ${error.message}`);
         throw error;
@@ -436,3 +436,6 @@ router.get("/:id/status", async (req, res) => {
 
 export default router;
 
+// ask mr heider if he wants the display to show IP address also or only show the names of the devices since he wants
+// to use mac addresses (better) though displaying mac address on device status will be confusing for 
+// non-technical personnel
