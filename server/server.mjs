@@ -22,7 +22,7 @@ import screensrouter from "./routes/screensrouter.mjs"
 // CHECK ideascomment (IDC) for changes and notes
 
 const PORT = process.env.PORT || 5050;
-const hostname = "192.168.1.218" //IDC: replace with wtv static ip we are using
+const hostname = "192.168.1.218" //IDC: replace with wtv static ip we are using (prev 192.168.1.218)
 const app = express();
 
 app.use(cors( {
@@ -31,6 +31,7 @@ app.use(cors( {
 }));
 app.use(express.json());
 app.use(urlencoded({extended: true}))
+app.use(express.static('public'));
 
 // app.use(session({
 //     secret: process.env.SESSION_SECRET,
@@ -63,7 +64,7 @@ const options = {
     root: __dirname
 }
 app.get("/",(req,res) => {
-    res.sendFile('test.html', options);
+    res.sendFile('public/test.html', options);
 })
 
 //Starting the Express Server
