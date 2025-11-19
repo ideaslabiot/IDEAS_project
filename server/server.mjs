@@ -37,7 +37,7 @@ app.use(urlencoded({extended: true}))
 //     resave: false,
 //     saveUninitialized: false,
 //     store: MongoStore.create({
-//         mongoUrl: 'mongodb://localhost:27017/foodclubdb',
+//         mongoUrl: 'mongodb://localhost:27017/ideas_db',
 //         autoRemove: 'native'
 //     }),
 //     cookie: {

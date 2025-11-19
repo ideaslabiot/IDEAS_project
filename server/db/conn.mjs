@@ -14,7 +14,7 @@ try{
     process.exit(1); //exits the process with error code 1
 }
 
-const db = conn.db("foodclubdb")
+const db = conn.db("ideas_db")
 
 //using event listeners to monitor connection status
 client.on("serverOpening", () => console.log("MongoDB server connection opened"));

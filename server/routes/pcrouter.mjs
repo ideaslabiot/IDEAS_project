@@ -2,23 +2,25 @@ import express from "express";
 // import db from "../db/conn.mjs"
 import 'dotenv/config';
 import { exec } from 'child_process';
+import db from "../db/conn.mjs"
 import wol from "wake_on_lan";
 import { NodeSSH } from "node-ssh";
 
 //test pc 1 is 74-56-3c-b0-99-f4
 
 const router = express.Router();
-const computers = {
-  'pc1': {
-    mac: '74:56:3c:b0:99:f4',
-    ip: '192.168.1.132',  // Replace with actual IP
-    username: 'PC',  // Replace with Windows username
-    password: '123456'   // Or use SSH keys (more secure)
-  },
-};
+// const computers = {};
+let collection = db.collection("devices")
+
+// 'pc1': {
+//     mac: '74:56:3c:b0:99:f4',
+//     ip: '192.168.1.132',  // Replace with actual IP
+//     username: 'PC',  // Replace with Windows username
+//     password: '123456'   // Or use SSH keys (more secure)
+//   },
 
 const WOL_OPTIONS = {
-  address: '192.168.1.255'
+  address: '192.168.1.255'//router broadcast
 };
 
 function disposeSsh(ssh) {
@@ -29,9 +31,10 @@ function disposeSsh(ssh) {
 }
 
 // wake on lan the computer
-router.post('/wake/:computerId', (req, res) => {
-  const computerId = req.params.computerId;
-  const computer = computers[computerId];
+router.post('/wake/:computer_name', async (req, res) => {
+
+  const computerName = req.params.computer_name;
+  const computer = await collection.findOne({ device_name: `${computerName}`})
   
   if (!computer) {
     return res.status(404).json({ error: 'Computer not found' });
@@ -39,16 +42,16 @@ router.post('/wake/:computerId', (req, res) => {
   
   wol.wake(computer.mac, WOL_OPTIONS, (error) => {
     if (error) {
-      console.error(`Failed to wake ${computerId}:`, error);
+      console.error(`Failed to wake ${computerName}:`, error);
       res.status(500).json({ 
         error: 'Failed to send WOL packet', 
         details: error.message 
       });
     } else {
-      console.log(`WOL packet sent to ${computerId}`);
+      console.log(`WOL packet sent to ${computerName}`);
       res.json({ 
         success: true, 
-        message: `WOL packet sent to ${computerId}` 
+        message: `WOL packet sent to ${computerName}` 
       });
     }
   });
@@ -57,20 +60,22 @@ router.post('/wake/:computerId', (req, res) => {
 // Wake all computers
 router.post('/wake-all', async (req, res) => {
   const results = [];
+  let computers = await collection.find().toArray()
   
-  for (const [id, computer] of Object.entries(computers)) {
+  for (let i =0; i < computers.length; i++) {
     try {
+      var computer = computers[i]
       await new Promise((resolve, reject) => {
         wol.wake(computer.mac, WOL_OPTIONS, (error) => {
           if (error) reject(error);
           else resolve();
         });
       });
-      results.push({ id, status: 'success', action: 'wake' });
-      console.log(`✓ WOL sent to ${id}`);
+      results.push({ name: computer.device_name, status: 'success', action: 'wake' });
+      console.log(`✓ WOL sent to ${computer.device_name}`);
     } catch (error) {
-      results.push({ id, status: 'failed', action: 'wake', error: error.message });
-      console.error(`✗ Failed to wake ${id}:`, error);
+      results.push({ id: computer.device_name, status: 'failed', action: 'wake', error: error.message });
+      console.error(`✗ Failed to wake ${computer.device_name}:`, error);
     }
     
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -80,9 +85,9 @@ router.post('/wake-all', async (req, res) => {
 });
 
 // Shutdown computer
-router.post('/shutdown/:computerId', async (req, res) => {
-  const computerId = req.params.computerId;
-  const computer = computers[computerId];
+router.post('/shutdown/:computer_name', async (req, res) => {
+  const computerName = req.params.computer_name;
+  const computer = await collection.findOne({ device_name: `${computerName}`})
   
   if (!computer) {
     return res.status(404).json({ error: 'Computer not found' });
@@ -91,7 +96,7 @@ router.post('/shutdown/:computerId', async (req, res) => {
   const ssh = new NodeSSH();
   
   try {
-    console.log(`Connecting to ${computerId} at ${computer.ip}...`);
+    console.log(`Connecting to ${computerName} at ${computer.ip}...`);
     
     await ssh.connect({
       host: computer.ip,
@@ -101,22 +106,22 @@ router.post('/shutdown/:computerId', async (req, res) => {
       // privateKeyPath: '/path/to/private/key',
     });
     
-    console.log(`Connected to ${computerId}, sending shutdown command...`);
+    console.log(`Connected to ${computerName}, sending shutdown command...`);
     
     // Shutdown command: /s = shutdown, /t 0 = 0 second delay, /f = force close apps
     await ssh.execCommand('shutdown /s /t 3 /f');
     
-    console.log(`Shutdown command sent to ${computerId}`);
+    console.log(`Shutdown command sent to ${computerName}`);
     
     res.json({ 
       success: true, 
-      message: `Shutdown command sent to ${computerId}` 
+      message: `Shutdown command sent to ${computerName}` 
     });
 
     disposeSsh(ssh)
     
   } catch (error) {
-    console.error(`Failed to shutdown ${computerId}:`, error);
+    console.error(`Failed to shutdown ${computerName}:`, error);
 
     try {
         disposeSsh(ssh);
@@ -133,8 +138,11 @@ router.post('/shutdown/:computerId', async (req, res) => {
 // Get status of all computers (ping check)
 router.get('/status', async (req, res) => {
   const results = [];
+  let computers = await collection.find().toArray()
   
-  for (const [id, computer] of Object.entries(computers)) {
+  for (let i=0; i<computers.length; i++) {
+    var computer = computers[i];
+
     const ssh = new NodeSSH();
     try {
       await ssh.connect({
@@ -144,11 +152,11 @@ router.get('/status', async (req, res) => {
         readyTimeout: 5000  // 5 second timeout
       });
       
-      results.push({ id, status: 'online', ip: computer.ip });
+      results.push({ name:computer.device_name, status: 'online', ip: computer.ip });
       disposeSsh(ssh)
       
     } catch (error) {
-      results.push({ id, status: 'offline', ip: computer.ip });
+      results.push({ name:computer.device_name, status: 'offline', ip: computer.ip });
     }
   }
   
