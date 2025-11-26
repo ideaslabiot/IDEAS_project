@@ -17,7 +17,8 @@ const __dirname = dirname(__filename);
 import lightsrouter from "./routes/lightsrouter.mjs";
 import pcrouter from "./routes/pcrouter.mjs";
 import projectorrouter from "./routes/projecterrouter.mjs";
-import screensrouter from "./routes/screensrouter.mjs"
+import screensrouter from "./routes/screensrouter.mjs";
+import devicerouter from "./routes/devicerouter.mjs";
 
 // CHECK ideascomment (IDC) for changes and notes
 
@@ -52,6 +53,7 @@ app.use(urlencoded({extended: true}))
 
 
 // app.use("/users", userrouter);
+app.use("/device",devicerouter)
 app.use("/lights", lightsrouter)
 app.use("/projector", projectorrouter)
 app.use("/computer", pcrouter)
