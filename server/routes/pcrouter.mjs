@@ -7,6 +7,7 @@ import wol from "wake_on_lan";
 import { NodeSSH } from "node-ssh";
 
 //test pc 1 is 74-56-3c-b0-99-f4
+//TODO also do a search for ip by mac again
 
 const router = express.Router();
 // const computers = {};
@@ -34,7 +35,7 @@ function disposeSsh(ssh) {
 router.post('/wake/:computer_name', async (req, res) => {
 
   const computerName = req.params.computer_name;
-  const computer = await collection.findOne({ device_name: `${computerName}`})
+  const computer = await collection.findOne({ device_name: `${computerName}`, category: "2"})
   
   if (!computer) {
     return res.status(404).json({ error: 'Computer not found' });
@@ -60,7 +61,7 @@ router.post('/wake/:computer_name', async (req, res) => {
 // Wake all computers
 router.post('/wake-all', async (req, res) => {
   const results = [];
-  let computers = await collection.find().toArray()
+  let computers = await collection.find({category: "2"}).toArray()
   
   for (let i =0; i < computers.length; i++) {
     try {
@@ -138,7 +139,7 @@ router.post('/shutdown/:computer_name', async (req, res) => {
 // Get status of all computers (ping check)
 router.get('/status', async (req, res) => {
   const results = [];
-  let computers = await collection.find().toArray()
+  let computers = await collection.find({category: "2"}).toArray()
   
   for (let i=0; i<computers.length; i++) {
     var computer = computers[i];
