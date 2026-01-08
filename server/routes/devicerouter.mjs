@@ -10,6 +10,7 @@ import os from 'os';
 const execAsync = promisify(exec);
 
 let collection = db.collection("devices")
+//NOTE: NEED TO ADD ADDITIONAL CONSIDERATIONS FOR TUYA DEVICES (the device ID)
 
 /**
  * Get MAC address for a given IP from ARP cache

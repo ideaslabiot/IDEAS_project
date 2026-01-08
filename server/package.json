@@ -12,6 +12,7 @@
   "description": "",
   "dependencies": {
     "@network-utils/arp-lookup": "^2.1.0",
+    "@tuya/tuya-connector-nodejs": "^2.1.2",
     "@weejewel/samsung-mdc": "^1.0.0",
     "connect-mongo": "^5.1.0",
     "cors": "^2.8.5",
@@ -27,7 +28,9 @@
     "passport": "^0.7.0",
     "passport-google-oauth": "^2.0.0",
     "passport-local": "^1.0.0",
+    "pjlink": "^0.2.8",
     "tp-link-tapo-connect": "^2.0.8",
+    "tuya-cli": "^1.0.0",
     "wake_on_lan": "^1.0.0"
   }
 }
