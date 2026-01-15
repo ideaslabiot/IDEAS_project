@@ -158,10 +158,9 @@ export async function device_refresh() {
 
         const devices = await collection.find({}).toArray()
         
-        console.log(devices)
         for (let device of devices) {
-            console.log(device)
             try {
+                console.log(device.device_name)
                 let device_ip = await findIpByMac(device.mac)
 
                 if (device.ip != device_ip) {
