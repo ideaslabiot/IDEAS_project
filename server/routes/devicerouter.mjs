@@ -371,7 +371,7 @@ router.put("/update/:id", async (req,res) => {
     }
     
     try {
-        await collection.updateOne({device_name: device_name}, {$set: new_device})
+        await collection.updateOne({_id: new ObjectId(id)}, {$set: new_device})
         return res.status(200).json({ message: "Device updated successfully" })
     } catch(err) {
         console.error(err)

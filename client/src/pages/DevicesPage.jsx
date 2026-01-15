@@ -29,8 +29,10 @@ export default function DevicesPage() {
   const [editError, setEditError] = useState(null);
   const [deleteError, setDeleteError] = useState(null);
 
-  async function loadDevices() {
-    setLoading(true);
+  async function loadDevices(isInitial = false) {
+    if (isInitial) {
+      setLoading(true);
+    }
 
     const data =
       category === "0"
@@ -38,19 +40,22 @@ export default function DevicesPage() {
         : await getDevicesByCategory(category);
 
     setDevices(data);
-    setLoading(false);
+    
+    if (isInitial) {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
-    loadDevices();
-    const interval = setInterval(loadDevices, 5000);
+    loadDevices(true); // Initial load with loading state
+    const interval = setInterval(() => loadDevices(false), 5000); // Refresh without loading state
     return () => clearInterval(interval);
   }, [category]);
 
   async function handleToggle(device) {
     if (device.category === "1") {
       const action = device.state === "ON" ? "off" : "on";
-      await toggleScreenPower(device._id, action);
+      await toggleScreenPower(device.device_name, action);
     }
 
     loadDevices();
