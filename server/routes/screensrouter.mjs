@@ -43,23 +43,32 @@ class SamsungMDC {
 // GET all screens with live state
 router.get("/", async (req, res) => {
   try {
-    const screens = await collection.find({ category: "1" }).toArray();
+    const screens = await collection.find(
+      { category: "1" }, 
+      { projection: { _id: 1, device_name: 1, mac: 1, ip: 1, category: 1, timestamp: 1 } }
+    ).toArray();
  
-    // Check all screens in parallel
-    const screenPromises = screens.map(async (s) => {
+    // Helper to check with timeout
+    const checkWithTimeout = async (screen, timeoutMs = 3000) => {
       try {
-        const display = new SamsungMDC(s.ip);
-        const check = await display.status();
+        const display = new SamsungMDC(screen.ip);
         
-        // if tv is on return else return null
-        return check === "ON" ? s : null;
+        const statusPromise = display.status();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout')), timeoutMs)
+        );
+        
+        const check = await Promise.race([statusPromise, timeoutPromise]);
+        
+        return check === "ON" ? screen : null;
       } catch (error) {
-        // Screen is offline or error, don't include it
         return null;
       }
-    });
+    };
 
-    const results = await Promise.all(screenPromises);
+    const results = await Promise.all(
+      screens.map(s => checkWithTimeout(s))
+    );
     const live_screens = results.filter(s => s !== null);
     
     res.json(live_screens);
@@ -110,6 +119,7 @@ router.post("/shutdown/:screen_name", async (req, res) => {
     try {
         const display = new SamsungMDC(screen.ip);
         await display.powerOff()
+        const check = await display.status()
 
         res.status(200).json({
             success: true,

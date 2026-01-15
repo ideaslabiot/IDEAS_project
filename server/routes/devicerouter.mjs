@@ -6,6 +6,7 @@ import net from 'net';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import os from 'os';
+import { ObjectId } from "mongodb";
 
 const execAsync = promisify(exec);
 
@@ -245,6 +246,12 @@ router.post("/add", async (req,res) => {
         }
     }
 
+    const check = await collection.findOne({device_name:device_name})
+
+    if (check) {
+        return res.status(404).json({ message: "Device already exists in the database!" })
+    }
+
     //check if device already exists TODO
     const timestamp = Date.now()
 
@@ -268,7 +275,8 @@ router.post("/add", async (req,res) => {
     }
 })
 
-router.put("/update", async (req,res) => {
+router.put("/update/:id", async (req,res) => {
+    const id = req.params.id
     let {device_name, mac = "", ip, password = "", username = "", category} = req.body
 
     if (!device_name) 
@@ -300,6 +308,18 @@ router.put("/update", async (req,res) => {
         if (!password || !username) {
             return res.status(400).json({ message: "PC's require the password and username of the account on the PC."})
         }
+    }
+
+    // Check if another device (not this one) already has this name
+    const existingDevice = await collection.findOne({ 
+      device_name: device_name,
+      _id: { $ne: new ObjectId(id) }  // Exclude the current device
+    });
+
+    if (existingDevice) {
+      return res.status(409).json({ 
+        message: "Another device with this name already exists!" 
+      });
     }
 
     let new_device = {

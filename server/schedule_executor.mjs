@@ -231,7 +231,7 @@ class ScheduleExecutor {
       if (action == "On") {
         await axios.post(`${this.baseUrl}/screens/wake/${device.device_name}`);
       } else if (action == "Off") {
-        await axios.post(`${this.baseUrl}/screens/poweroff/${device.device_name}`);
+        await axios.post(`${this.baseUrl}/screens/shutdown/${device.device_name}`);
       }
       
     } catch (err) {

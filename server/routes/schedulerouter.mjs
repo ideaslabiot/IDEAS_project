@@ -1,5 +1,6 @@
 import express from 'express';
 import db from "../db/conn.mjs"
+import { ObjectId } from 'mongodb';
 
 const router = express.Router();
 
@@ -148,34 +149,30 @@ router.get('/schedules/:id', async (req, res) => {
   }
 });
 
-// Get schedules for today
-router.get('/schedules/filter/today', async (req, res) => {
-  try {
-    const today = new Date().getDay(); // 0 = Sunday, 6 = Saturday
+// // Get schedules for today
+// router.get('/schedules/filter/today', async (req, res) => {
+//   try {
+//     const today = new Date().getDay(); // 0 = Sunday, 6 = Saturday
 
-    const schedules = await db.collection('schedules')
-      .find({
-        is_active: true,
-        days_of_week: today
-      })
-      .sort({ scheduled_time: 1 })
-      .toArray();
+//     const schedules = await db.collection('schedules')
+//       .find({
+//         is_active: true,
+//         days_of_week: today
+//       })
+//       .sort({ scheduled_time: 1 })
+//       .toArray();
 
-    res.json({ success: true, count: schedules.length, day: today, schedules });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
+//     res.json({ success: true, count: schedules.length, day: today, schedules });
+//   } catch (err) {
+//     res.status(500).json({ success: false, error: err.message });
+//   }
+// });
 
 // Update a schedule
 router.patch('/schedules/:id', async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id;
     const updates = req.body;
-
-    if (!ObjectId.isValid(id)) {
-      return res.status(400).json({ success: false, error: 'Invalid schedule ID' });
-    }
 
     // Don't allow changing these fields
     delete updates._id;
@@ -244,7 +241,7 @@ router.patch('/schedules/:id', async (req, res) => {
       { returnDocument: 'after' }
     );
 
-    if (!result.value) {
+    if (!result) {
       return res.status(404).json({
         success: false,
         error: 'Schedule not found'
@@ -257,53 +254,43 @@ router.patch('/schedules/:id', async (req, res) => {
   }
 });
 
-// Toggle schedule active status
-router.patch('/schedules/:id/toggle', async (req, res) => {
-  try {
-    const { id } = req.params;
+// // Toggle schedule active status
+// router.patch('/schedules/:id/toggle', async (req, res) => {
+//   try {
+//     const { id } = req.params;
 
-    if (!ObjectId.isValid(id)) {
-      return res.status(400).json({ success: false, error: 'Invalid schedule ID' });
-    }
+//     const schedule = await db.collection('schedules').findOne({ _id: new ObjectId(id) });
+//     if (!schedule) {
+//       return res.status(404).json({ success: false, error: 'Schedule not found' });
+//     }
 
-    const schedule = await db.collection('schedules').findOne({ _id: new ObjectId(id) });
-    if (!schedule) {
-      return res.status(404).json({ success: false, error: 'Schedule not found' });
-    }
-
-    const newActiveState = !schedule.is_active;
+//     const newActiveState = !schedule.is_active;
     
-    const result = await db.collection('schedules').findOneAndUpdate(
-      { _id: new ObjectId(id) },
-      { 
-        $set: { 
-          is_active: newActiveState,
-          updated_at: new Date()
-        } 
-      },
-      { returnDocument: 'after' }
-    );
+//     const result = await db.collection('schedules').findOneAndUpdate(
+//       { _id: new ObjectId(id) },
+//       { 
+//         $set: { 
+//           is_active: newActiveState,
+//           updated_at: new Date()
+//         } 
+//       },
+//       { returnDocument: 'after' }
+//     );
 
-    res.json({ 
-      success: true, 
-      message: `Schedule ${newActiveState ? 'activated' : 'deactivated'}`,
-      schedule: result.value 
-    });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
+//     res.json({ 
+//       success: true, 
+//       message: `Schedule ${newActiveState ? 'activated' : 'deactivated'}`,
+//       schedule: result.value 
+//     });
+//   } catch (err) {
+//     res.status(500).json({ success: false, error: err.message });
+//   }
+// });
 
 // Delete a schedule
 router.delete('/schedules/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const db = await connectDB();
-
-    if (!ObjectId.isValid(id)) {
-      return res.status(400).json({ success: false, error: 'Invalid schedule ID' });
-    }
-
     const result = await db.collection('schedules').deleteOne({ _id: new ObjectId(id) });
     
     if (result.deletedCount === 0) {
@@ -317,3 +304,24 @@ router.delete('/schedules/:id', async (req, res) => {
 });
 
 export default router;
+
+
+// {
+//     "schedule_name":"test1",
+//     "scheduled_time":"11:25",
+//     "devices":[
+//         {
+//             "device_name":"com1",
+//             "category":"2"
+//         },
+//         {
+//             "device_name":"proj1",
+//             "category":"4"
+//         }
+//     ],
+//     "action":"On",
+//     "days_of_week": [
+//         4
+//     ],
+//     "repeat_weekly":false
+// }

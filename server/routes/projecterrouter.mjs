@@ -11,6 +11,12 @@ import pjlink from "pjlink";
 let collection = db.collection("devices")
 const router = express.Router();
 
+router.get("/status",async (req,res) => {
+    let {projector_names} = req.body;
+
+    
+})
+
 router.post("/wake/:projector_name", async (req,res) => {
     const deviceName = req.params.projector_name;
 
