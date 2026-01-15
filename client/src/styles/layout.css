@@ -1,9 +1,12 @@
+@import './fonts.css';
+
 /* BASE LAYOUT */
 html, body, #root {
   height: 100%;
   margin: 0;
   overflow: hidden;
   background: #0f0f0f;
+  font-family: 'ES Klarheit Grotesk Mono', monospace;
 }
 
 .app-layout {

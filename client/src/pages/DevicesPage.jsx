@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getDevicesByCategory, togglePower } from "../services/api.mjs";
+import { getDevicesByCategory, addDevice, updateDevice, deleteDevice } from "../services/deviceapi.mjs";
+import { toggleScreenPower } from "../services/screensapi.mjs";
 
 import DeviceCard from "../components/DeviceCard";
 import AddDeviceModal from "../components/AddDeviceModal";
 import EditDeviceModal from "../components/EditDeviceModal";
-import { addDevice, updateDevice } from "../services/api.mjs";
+
 import "../styles/device.css";
 
 const CATEGORY_LABELS = {
@@ -44,7 +45,11 @@ export default function DevicesPage() {
   }, [category]);
 
   async function handleToggle(device) {
-    await togglePower(device._id, device.state);
+    if (device.category === "1") {
+      const action = device.state === "ON" ? "off" : "on";
+      await toggleScreenPower(device._id, action);
+    }
+
     loadDevices();
   }
 
@@ -53,8 +58,13 @@ export default function DevicesPage() {
     loadDevices();
   }
 
-  async function handleEditDevice(id, data) {
-    await updateDevice(id, data);
+  async function handleEditDevice(data) {
+    await updateDevice(data);
+    loadDevices();
+  }
+
+  async function handleDeleteDevice(data) {
+    await deleteDevice(data.device_name);
     loadDevices();
   }
   
@@ -77,7 +87,7 @@ export default function DevicesPage() {
 
       {/* DEVICE GRID */}
       <div className="device-grid">
-        {category !== "0" && (
+        {(
           <div className="device-card off add-card" onClick={() => setShowAdd(true)}>
             <div className="add-icon">+</div>
             <span>Add device</span>
@@ -109,6 +119,7 @@ export default function DevicesPage() {
           device={editDevice}
           onClose={() => setEditDevice(null)}
           onSave={handleEditDevice}
+          onDelete={handleDeleteDevice}
         />
       )}
 

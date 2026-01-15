@@ -91,7 +91,6 @@
   background-size: 200% 100%;
   animation: shimmer 1.2s infinite;
   color: #fff;
-  pointer-events: none;
 }
 
 @keyframes shimmer {
@@ -166,7 +165,7 @@
   z-index: 999; /* Layer (Makes popup above other content) */
 }
 
-.popup-content {
+.popup-content-add {
   background: #fff;
   color: #000;
   padding: 2vw;
@@ -175,6 +174,19 @@
   align-items: center;
   display: flex;
   flex-direction: column;
+  z-index: 1001;
+}
+
+.popup-content-edit {
+  background: #fff;
+  color: #000;
+  padding: 2vw;
+  border-radius: 12px;
+  width: 28vw;
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  z-index: 1001;
 }
 
 .popup-header {
@@ -197,6 +209,7 @@
   background-color:#CACACA;
   border: none;
   border-radius: 12px;
+  margin-bottom: 1.2vh;
 }
 
 .popup-actions {
@@ -220,3 +233,16 @@
   background-color: #111111;
   color: #ffffff;
 }
+
+.popup-content {
+  touch-action: auto;
+}
+
+.popup select,
+.popup input,
+.popup button {
+  touch-action: manipulation;
+  pointer-events: auto;
+  position: relative;
+}
+

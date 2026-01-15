@@ -1,6 +1,6 @@
 import { useState } from "react";
 import PowerButton from "../assets/Power.svg";
-import MenuButton from "../assets/Devices.svg";
+import MenuButton from "../assets/Menu.svg";
 
 export default function DeviceCard({ device, onToggle, onEdit }) {
   const [loading, setLoading] = useState(false);
