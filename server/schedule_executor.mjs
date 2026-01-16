@@ -21,17 +21,17 @@ class ScheduleExecutor {
   }
 
   getLocalIPAddress() {
-    const interfaces = os.networkInterfaces();
+    // const interfaces = os.networkInterfaces();
     
-    for (const name of Object.keys(interfaces)) {
-      for (const iface of interfaces[name]) {
-        if (iface.family === 'IPv4' && !iface.internal) {
-          return iface.address;
-        }
-      }
-    }
+    // for (const name of Object.keys(interfaces)) {
+    //   for (const iface of interfaces[name]) {
+    //     if (iface.family === 'IPv4' && !iface.internal) {
+    //       return iface.address;
+    //     }
+    //   }
+    // }
     
-    return 'localhost';
+    return "192.168.1.103";
   }
 
   // Start the scheduler (runs every minute)

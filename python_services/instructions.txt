@@ -1,0 +1,20 @@
+to activate the python server
+1. navigate in terminal to python-service (cd python_service)
+
+2. run 'venv\Scripts\activate'
+
+3. run 'python tapo_python.py'
+
+should see this:
+INFO:     Uvicorn running on http://0.0.0.0:5000
+
+
+first setup : 
+
+1. navigate in terminal to python-service (cd python_service)
+2. run 'venv\Scripts\activate'
+3. pip install -r requirements.txt (execute this command in python_services)
+
+when adding a new plug to the account/wifi, at the end, go to the tapo home app, go to "me" and go to "third-party compatiblity" and turn it off n on again (idk why but this is needed to avoid errors)
+
+update all tapo plugs to latest
