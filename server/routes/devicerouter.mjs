@@ -8,6 +8,8 @@ import { promisify } from 'util';
 import os from 'os';
 import { ObjectId } from "mongodb";
 
+import { broadcastDeviceUpdate } from "../server.mjs";
+
 const execAsync = promisify(exec);
 
 let collection = db.collection("devices")
@@ -258,7 +260,7 @@ router.post("/add", async (req,res) => {
         return res.status(400).json({ message: "Name is required" });
 
     if (!ip && !mac) 
-        return res.status(400).json({ message: "Either an IP or a MAC are required" });
+        return res.status(400).json({ message: "An IP is required" });
 
     if (!mac) {
         const maybeMac = await getMacAddress(ip);
@@ -278,6 +280,9 @@ router.post("/add", async (req,res) => {
     // 2 is pc's
     // 3 is lights
     // 4 is projector
+    if (category!== "1" && category!== "2" && category!== "3" && category!== "4") {
+        return res.status(400).json({ message: "Category is required"})
+    }
 
     if (category == "2") {
         if (!password || !username) {
@@ -291,6 +296,14 @@ router.post("/add", async (req,res) => {
         return res.status(404).json({ message: "Device already exists in the database!" })
     }
 
+    var checkmac = await collection.findOne({
+        mac: mac
+    });
+
+    if (checkmac) {
+        return res.status(400).json({ message: `Device already exists as ${checkmac.device_name}!` })
+    }
+
     //check if device already exists TODO
     const timestamp = Date.now()
 
@@ -302,10 +315,16 @@ router.post("/add", async (req,res) => {
         username: username,
         category: category,
         timestamp: timestamp,
+        state: "Off"
     }
 
     try {
-        await collection.insertOne(new_device)
+        var result = await collection.insertOne(new_device)
+
+        const addedDevice = await collection.findOne({ _id: result.insertedId });
+  
+        //Broadcast the new device
+        broadcastDeviceUpdate(addedDevice);
 
         return res.status(200).json({ message: "Device added successfully" })
     } catch(err) {
@@ -319,13 +338,18 @@ router.put("/update/:id", async (req,res) => {
     let {device_name, mac = "", ip, password = "", username = "", category} = req.body
 
     if (!device_name) 
-        return res.status(400).json({ message: "Name is required" });
+        return res.status(400).json({ message: "Name is required" }); 
 
     if (!ip && !mac) 
-        return res.status(400).json({ message: "Either an IP or a MAC are required" });
+        return res.status(400).json({ message: "An IP is required" });
+
+    if (ip.length < 2) {
+        return res.status(400).json({ message: "An IP is required" });
+    }
 
     if (!mac) {
         const maybeMac = await getMacAddress(ip);
+
         if (maybeMac) {
             mac = maybeMac;
         } else {
@@ -334,6 +358,10 @@ router.put("/update/:id", async (req,res) => {
     }
 
     if (!category) {
+        return res.status(400).json({ message: "Category is required"})
+    }
+
+    if (category!== "1" && category!== "2" && category!== "3" && category!== "4") {
         return res.status(400).json({ message: "Category is required"})
     }
 
@@ -361,6 +389,15 @@ router.put("/update/:id", async (req,res) => {
       });
     }
 
+    var checkmac = await collection.findOne({
+        mac: mac,
+        _id: { $ne: new ObjectId(id) }  // Exclude the current device
+    });
+
+    if (checkmac) {
+        return res.status(400).json({ message: `Device already exists as ${checkmac.device_name}!` })
+    }
+
     let new_device = {
         device_name: device_name,
         mac: mac,
@@ -371,7 +408,13 @@ router.put("/update/:id", async (req,res) => {
     }
     
     try {
-        await collection.updateOne({_id: new ObjectId(id)}, {$set: new_device})
+        var result = await collection.updateOne({_id: new ObjectId(id)}, {$set: new_device})
+
+        const updatedDevice = await collection.findOne({ _id: new ObjectId(id) });
+  
+        //Broadcast the new device
+        broadcastDeviceUpdate(updatedDevice);
+
         return res.status(200).json({ message: "Device updated successfully" })
     } catch(err) {
         console.error(err)
@@ -390,8 +433,12 @@ router.delete("/delete/:device", async (req,res) => {
     }
     
     try {
-        await collection.findOneAndDelete({device_name: device_name})
+        const deletedDevice = await collection.findOne({ device_name });
+        await collection.deleteOne({ device_name });
         
+        // ✅ Broadcast deletion (you'll need to handle this in frontend)
+        broadcastDeviceUpdate({ ...deletedDevice, _deleted: true });
+
         return res.status(200).json({message: "Device deleted succesfully."})
     } catch(err) {
         console.error(err)

@@ -3,16 +3,27 @@ import PowerButton from "../assets/Power.svg";
 import MenuButton from "../assets/Menu.svg";
 
 export default function DeviceCard({ device, onToggle, onEdit }) {
-  const [loading, setLoading] = useState(false);
-
+  // ✅ Check if device is in a transition state (include WARMING/COOLING for projectors)
+  const isPending = device.state?.startsWith("PENDING") ||
+    device.state === "WARMING" ||
+    device.state === "COOLING";
   const isOn = device.state === "ON";
 
   async function handleClick() {
-    if (loading) return;
+    if (isPending) {
+      // ✅ Custom message for projectors
+      const message = device.category === "4"
+        ? `${device.device_name} is warming up or cooling down. Please wait.`
+        : `${device.device_name} is currently executing a command. Please wait.`;
+      alert(message);
+      return;
+    }
 
-    setLoading(true);
-    await onToggle();
-    setLoading(false);
+    try {
+      await onToggle();
+    } catch (error) {
+      // Error already handled in parent
+    }
   }
 
   return (
@@ -20,7 +31,7 @@ export default function DeviceCard({ device, onToggle, onEdit }) {
       role="button"
       tabIndex={0}
       className={`device-card ${
-        loading ? "loading" : isOn ? "on" : "off" // for css styling
+        isPending ? "loading" : isOn ? "on" : "off"
       }`}
       onClick={handleClick}
     >
@@ -31,7 +42,7 @@ export default function DeviceCard({ device, onToggle, onEdit }) {
           <img
             src={MenuButton}
             alt="Menu"
-            className="icon-button"
+            className={`icon-button ${isOn ? "icon-on" : "icon-off"}`}
             onClick={(e) => {
               e.stopPropagation();
               onEdit();
@@ -40,16 +51,16 @@ export default function DeviceCard({ device, onToggle, onEdit }) {
           <img
             src={PowerButton}
             alt="Power"
-            className="icon-button"
+            className={`icon-button ${isOn ? "icon-on" : "icon-off"}`}
           />
         </div>
       </div>
 
       {/* FOOTER */}
       <div className="device-info">
-          <div className="device-name">{device.device_name}</div>
-          <div className="device-ip">{device.ip}</div>
-        </div>
+        <div className="device-name">{device.device_name}</div>
+        <div className="device-ip">{device.ip}</div>
+      </div>
     </div>
   );
 }

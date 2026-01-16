@@ -5,9 +5,13 @@ import session from "express-session"
 import MongoStore from "connect-mongo";
 import passport from "passport";
 import os from "os"
+import { createServer } from "http";
+import { WebSocketServer } from "ws";
 // import "./auth/passport.mjs"
 import 'dotenv/config';
 import 'http';
+import { startBackgroundSync } from "./backgroundSync.mjs";
+import db from "./db/conn.mjs"; // ✅ ADD THIS for WebSocket
 
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -19,7 +23,7 @@ const __dirname = dirname(__filename);
 // import userrouter from "./routes/userrouter.mjs";
 import lightsrouter from "./routes/lightsrouter.mjs";
 import pcrouter from "./routes/pcrouter.mjs";
-import projectorrouter from "./routes/projecterrouter.mjs";
+import projectorrouter from "./routes/projectorrouter.mjs";
 import screensrouter from "./routes/screensrouter.mjs";
 import devicerouter from "./routes/devicerouter.mjs";
 
@@ -77,9 +81,76 @@ app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "..", "public", "test.html"));
 });
 
+//---------------------- WEBSOCKET
+const server = createServer(app);
+const wss = new WebSocketServer({ server });
+// Store connected clients
+const clients = new Set();
+
+// WebSocket connection handler
+wss.on("connection", (ws) => {
+  console.log("✓ New WebSocket client connected");
+  clients.add(ws);
+
+  ws.on("close", () => {
+    console.log("✗ WebSocket client disconnected");
+    clients.delete(ws);
+  });
+
+  ws.on("error", (error) => {
+    console.error("WebSocket error:", error);
+    clients.delete(ws);
+  });
+
+  // Send initial device states on connection
+  (async () => {
+    try {
+      const devices = await db.collection("devices").find({}).toArray();
+      ws.send(JSON.stringify({
+        type: "INITIAL_STATE",
+        devices: devices
+      }));
+    } catch (error) {
+      console.error("Error sending initial state:", error);
+    }
+  })();
+});
+
+// Function to broadcast single device update
+export function broadcastDeviceUpdate(device) {
+  const message = JSON.stringify({
+    type: "DEVICE_UPDATE",
+    device: device
+  });
+
+  clients.forEach((client) => {
+    if (client.readyState === 1) { // WebSocket.OPEN
+      client.send(message);
+    }
+  });
+}
+
+// Function to broadcast multiple device updates
+export function broadcastDevicesUpdate(devices) {
+  const message = JSON.stringify({
+    type: "DEVICES_UPDATE",
+    devices: devices
+  });
+
+  clients.forEach((client) => {
+    if (client.readyState === 1) {
+      client.send(message);
+    }
+  });
+}
+//---------------------- WEBSOCKET
+
 //Starting the Express Server
-app.listen(PORT, hostname, () => {
+server.listen(PORT, hostname, () => {
   console.log(`Server running at http://${hostname}:${PORT}`);
+  console.log(`WebSocket server ready`);
+
+  startBackgroundSync();
 });
 
 device_refresh();

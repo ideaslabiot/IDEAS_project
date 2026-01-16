@@ -64,12 +64,15 @@ export default function AddDeviceModal({ category, error, onClose, onAdd }) {
               onChange={handleChange}
               autoComplete="username"
             />
-
+          </>
+        )}
+        {(form.category === "2" || form.category === "4") && (
+          <>
             <h4 className="popup-label">Password</h4>
             <input
               className="popup-input"
               name="password"
-              placeholder="Computer password"
+              placeholder="Password"
               value={form.password}
               onChange={handleChange}
               autoComplete="current-password"

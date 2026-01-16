@@ -55,7 +55,7 @@ router.post('/schedules', async (req, res) => {
         success: false,
         error: 'Days of week must be between 0 (Sunday) and 6 (Saturday)'
       });
-    }
+    } 
 
     // Validate action
     if (!['On', 'Off'].includes(action)) {

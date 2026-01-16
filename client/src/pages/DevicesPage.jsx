@@ -1,7 +1,8 @@
+// pages/DevicesPage.jsx
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getDevicesByCategory, addDevice, updateDevice, deleteDevice } from "../services/deviceapi.mjs";
-import { toggleScreenPower } from "../services/screensapi.mjs";
+import { addDevice, updateDevice, deleteDevice } from "../services/deviceapi.mjs";
+import { useWebSocket } from "../contexts/WebSocketContext";
 
 import DeviceCard from "../components/DeviceCard";
 import AddDeviceModal from "../components/AddDeviceModal";
@@ -18,47 +19,67 @@ const CATEGORY_LABELS = {
 };
 
 export default function DevicesPage() {
-  const { category = "0" } = useParams(); // default to "All"
+  const { category = "0" } = useParams();
   const navigate = useNavigate();
+  
+  const { devices: globalDevices, connected } = useWebSocket();
 
-  const [devices, setDevices] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
   const [editDevice, setEditDevice] = useState(null);
   const [addError, setAddError] = useState(null);
   const [editError, setEditError] = useState(null);
   const [deleteError, setDeleteError] = useState(null);
 
-  async function loadDevices(isInitial = false) {
-    if (isInitial) {
-      setLoading(true);
-    }
-
-    const data =
-      category === "0"
-        ? await getDevicesByCategory() // all devices
-        : await getDevicesByCategory(category);
-
-    setDevices(data);
-    
-    if (isInitial) {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    loadDevices(true); // Initial load with loading state
-    const interval = setInterval(() => loadDevices(false), 5000); // Refresh without loading state
-    return () => clearInterval(interval);
-  }, [category]);
+  const devices = category === "0" 
+    ? globalDevices 
+    : globalDevices.filter(d => d.category === category);
 
   async function handleToggle(device) {
-    if (device.category === "1") {
-      const action = device.state === "ON" ? "off" : "on";
-      await toggleScreenPower(device.device_name, action);
-    }
+    try {
+      let response;
 
-    loadDevices();
+      if (device.category === "1") {
+        // Screens
+        const action = device.state === "ON" ? "shutdown" : "wake";
+        response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/screens/${action}/${device.device_name}`, {
+          method: "POST"
+        });
+      } else if (device.category === "2") {
+        // Computers
+        const action = device.state === "ON" ? "shutdown" : "wake";
+        response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/computers/${action}/${device.device_name}`, {
+          method: "POST"
+        });
+      } else if (device.category === "3") {
+        // Tapo Lights
+        const action = device.state === "ON" ? "shutdown" : "wake";
+        response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/tapo/${action}/${device.device_name}`, {
+          method: "POST"
+        });
+      } else if (device.category === "4") {
+        // Projectors
+        const action = device.state === "ON" ? "shutdown" : "wake";
+        response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projector/${action}/${device.device_name}`, {
+          method: "POST"
+        });
+      }
+
+      if (!response.ok) {
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || errorData.error || "Failed to toggle device");
+        } else {
+          const text = await response.text();
+          console.error("Server returned HTML:", text);
+          throw new Error(`Server error: ${response.status} ${response.statusText}`);
+        }
+      }
+    } catch (error) {
+      console.error("Toggle failed:", error);
+      alert(error.message || "Failed to toggle device");
+      throw error;
+    }
   }
 
   async function handleAddDevice(data) {
@@ -66,7 +87,6 @@ export default function DevicesPage() {
       setAddError(null);
       await addDevice(data);
       setShowAdd(false);
-      loadDevices();
     } catch (error) {
       setAddError(error.message || "Failed to add device");
     }
@@ -77,7 +97,6 @@ export default function DevicesPage() {
       setEditError(null);
       await updateDevice(id, data);
       setEditDevice(null);
-      loadDevices();
     } catch (error) {
       setEditError(error.message || "Failed to update device");
     }
@@ -88,7 +107,6 @@ export default function DevicesPage() {
       setDeleteError(null);
       await deleteDevice(data.device_name);
       setEditDevice(null);
-      loadDevices();
     } catch (error) {
       setDeleteError(error.message || "Failed to delete device");
     }
@@ -96,7 +114,10 @@ export default function DevicesPage() {
   
   return (
     <div className="devices-page">
-      <h2 className="device-header">Devices</h2>
+      <h2 className="device-header">
+        Devices
+        {!connected && <span className="connection-status"> (Reconnecting...)</span>}
+      </h2>
 
       {/* CATEGORY TABS */}
       <div className="device-tabs">
@@ -113,14 +134,13 @@ export default function DevicesPage() {
 
       {/* DEVICE GRID */}
       <div className="device-grid">
-        {(
-          <div className="device-card off add-card" onClick={() => setShowAdd(true)}>
-            <div className="add-icon">+</div>
-            <span>Add device</span>
-          </div>
-        )}
-        {loading ? (
-          <div className="loading-text">Loading devices…</div>
+        <div className="device-card off add-card" onClick={() => setShowAdd(true)}>
+          <div className="add-icon">+</div>
+          <span>Add device</span>
+        </div>
+        
+        {devices.length === 0 ? (
+          <div className="loading-text">No devices found</div>
         ) : (
           devices.map(device => (
             <DeviceCard
@@ -132,6 +152,7 @@ export default function DevicesPage() {
           ))
         )}
       </div>
+
       {showAdd && (
         <AddDeviceModal
           category={category}
@@ -158,7 +179,6 @@ export default function DevicesPage() {
           onDelete={handleDeleteDevice}
         />
       )}
-
     </div>
   );
 }

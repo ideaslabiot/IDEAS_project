@@ -31,8 +31,10 @@
     "passport-google-oauth": "^2.0.0",
     "passport-local": "^1.0.0",
     "pjlink": "^0.2.8",
+    "samsung-lfd": "^1.1.0",
     "tp-link-tapo-connect": "^2.0.8",
     "tuya-cli": "^1.0.0",
-    "wake_on_lan": "^1.0.0"
+    "wake_on_lan": "^1.0.0",
+    "ws": "^8.19.0"
   }
 }

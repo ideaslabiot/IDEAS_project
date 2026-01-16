@@ -4,6 +4,9 @@ import 'dotenv/config';
 import { cloudLogin, loginDevice, loginDeviceByIp } from 'tp-link-tapo-connect';
 // const TuyAPI = (await import('tuyapi')).default;
 // const { TuyaContext } = await import("@tuya/tuya-connector-nodejs");
+
+import { broadcastDeviceUpdate } from "../server.mjs";
+import { isDeviceLocked, lockDevice, unlockDevice } from "../utils/lockManager.mjs";
 import axios from 'axios';
 
 const PYTHON_SERVICE_URL = process.env.PYTHON_SERVICE_URL || 'http://localhost:5000';
@@ -25,18 +28,63 @@ const router = express.Router();
 // console.log(tplink_user)
 // console.log(tplink_password)
 
-router.post("/wake/:light_name", async (req, res) => {
-    const deviceName = req.params.light_name;
+async function checkLightsStatus(device) {
+  try {
+    const response = await axios.get(
+      `${PYTHON_SERVICE_URL}/device/${device.ip}/status`,
+      { timeout: 5000 }
+    );
 
-    const light = await collection.findOne({device_name: deviceName, category: "3"});
+    return response.data.data.device_on ? "ON" : "OFF";
+    
+  } catch (error) {
+    console.log(`${device.device_name} connection failed (likely OFF):`, error.message);
+    return "OFF";
+  }
+}
+
+router.post("/wake/:light_name", async (req, res) => {
+    const device_name = req.params.light_name;
+
+    const light = await collection.findOne({device_name: device_name, category: "3"});
 
     if (!light) {
         return res.status(404).json({ error: 'Light device not found' });
     }
 
-    console.log(`Turning on ${deviceName} at ${light.ip}`);
+    // Check if locked
+    if (isDeviceLocked(light._id.toString())) {
+        return res.status(409).json({
+            error: 'Device is currently busy',
+            message: 'Another command is in progress. Please wait a moment.',
+            deviceName: light.device_name
+        });
+    }
+
+    // Check PENDING state
+    if (light.state?.startsWith("PENDING")) {
+        return res.status(409).json({
+            error: 'Device is currently busy',
+            message: 'Device is executing a command. Please wait.',
+            deviceName: light.device_name
+        });
+    }
+
+    // Lock device
+    lockDevice(light._id.toString(), 10000);
     
     try {
+        // Set PENDING and broadcast
+        await collection.updateOne(
+            { device_name: device_name },
+            { $set: { state: "PENDING_ON", timestamp: new Date() } }
+        );
+
+        let updated = await collection.findOne({ device_name: device_name });
+        broadcastDeviceUpdate(updated);
+
+        console.log(`Turning on ${device_name} at ${light.ip}`);
+
         // Call Python service to turn on device
         const response = await axios.post(
             `${PYTHON_SERVICE_URL}/device/${light.ip}/on`,
@@ -46,51 +94,132 @@ router.post("/wake/:light_name", async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: `${deviceName} successfully turned on.`,
-            details: response.data
+            message: `${device_name} power on command sent.`
         });
 
-    } catch(err) {
-        console.error(`Failed to wake ${deviceName}`, err);
+        // Verify after 3 seconds (lights respond quickly)
+        setTimeout(async () => {
+            try {
+                const state = await checkLightsStatus(light);
+                await collection.updateOne(
+                    { device_name: device_name },
+                    { $set: { state, timestamp: new Date() } }
+                );
+                updated = await collection.findOne({ device_name: device_name });
+                broadcastDeviceUpdate(updated);
+            } catch (err) {
+                console.error(`Verification failed for ${device_name}:`, err);
+            } finally {
+                unlockDevice(light._id.toString());
+            }
+        }, 3000);
+
+    } catch (err) {
+        console.error(`Failed to wake ${device_name}`, err);
+        unlockDevice(light._id.toString());
+
+        await collection.updateOne(
+            { device_name: device_name },
+            { $set: { state: "ERROR", lastError: err.message, timestamp: new Date() } }
+        );
+
+        const updated = await collection.findOne({ device_name: device_name });
+        broadcastDeviceUpdate(updated);
+
         res.status(500).json({
-            error: `Failed to wake ${deviceName}`,
+            error: `Failed to wake ${device_name}`,
             details: err.response?.data?.detail || err.message
         });
     }
 });
 
+// Power Off
 router.post("/shutdown/:light_name", async (req, res) => {
-    const deviceName = req.params.light_name;
+  const device_name = req.params.light_name;
+  const light = await collection.findOne({
+    device_name: device_name,
+    category: "3"
+  });
 
-    const light = await collection.findOne({device_name: deviceName, category: "3"});
+  if (!light) {
+    return res.status(404).json({ message: "Light not found" });
+  }
 
-    if (!light) {
-        return res.status(404).json({ error: 'Light device not found' });
-    }
+  // Check if locked
+  if (isDeviceLocked(light._id.toString())) {
+    return res.status(409).json({ 
+      error: 'Device is currently busy',
+      message: 'Another command is in progress. Please wait a moment.',
+      deviceName: light.device_name
+    });
+  }
 
-    console.log(`Turning off ${deviceName} at ${light.ip}`);
+  if (light.state?.startsWith("PENDING")) {
+    return res.status(409).json({ 
+      error: 'Device is currently busy',
+      message: 'Device is executing a command. Please wait.',
+      deviceName: light.device_name
+    });
+  }
+
+  lockDevice(light._id.toString(), 10000);
+
+  try {
+    await collection.updateOne(
+      { device_name: device_name },
+      { $set: { state: "PENDING_OFF", timestamp: new Date() } }
+    );
     
-    try {
-        // Call Python service to turn off device
-        const response = await axios.post(
-            `${PYTHON_SERVICE_URL}/device/${light.ip}/off`,
-            {},
-            { timeout: 5000 }
-        );
-        
-        res.status(200).json({
-            success: true,
-            message: `${deviceName} successfully turned off.`,
-            details: response.data
-        });
+    let updated = await collection.findOne({ device_name: device_name });
+    broadcastDeviceUpdate(updated);
 
-    } catch(err) {
-        console.error(`Failed to turn off ${deviceName}`, err);
-        res.status(500).json({
-            error: `Failed to turn off ${deviceName}`,
-            details: err.response?.data?.detail || err.message
-        });
-    }
+    console.log(`Turning off ${device_name} at ${light.ip}`);
+
+    // Call Python service to turn off device
+    const response = await axios.post(
+      `${PYTHON_SERVICE_URL}/device/${light.ip}/off`,
+      {},
+      { timeout: 5000 }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: `${device_name} power off command sent.`
+    });
+
+    setTimeout(async () => {
+      try {
+        const state = await checkLightsStatus(light);
+        await collection.updateOne(
+          { device_name: device_name },
+          { $set: { state, timestamp: new Date() } }
+        );
+        updated = await collection.findOne({ device_name: device_name });
+        broadcastDeviceUpdate(updated);
+      } catch (err) {
+        console.error(`Verification failed for ${device_name}:`, err);
+      } finally {
+        unlockDevice(light._id.toString());
+      }
+    }, 3000);
+
+  } catch (err) {
+    console.error(`Failed to shutdown ${device_name}`, err);
+    unlockDevice(light._id.toString());
+    
+    await collection.updateOne(
+      { device_name: device_name },
+      { $set: { state: "ERROR", lastError: err.message, timestamp: new Date() } }
+    );
+    
+    const updated = await collection.findOne({ device_name: device_name });
+    broadcastDeviceUpdate(updated);
+
+    res.status(500).json({
+      error: `Failed to shutdown ${device_name}`,
+      details: err.response?.data?.detail || err.message
+    });
+  }
 });
 
 // Get status for a single device
@@ -130,57 +259,57 @@ router.get("/status/:light_name", async (req, res) => {
     }
 });
 
-// Get status for all devices
-router.get("/status/all", async (req, res) => {
-    try {
-        const devices = await collection.find({ category: "3" }).toArray();
-        const statuses = [];
+// // Get status for all devices
+// router.get("/status/all", async (req, res) => {
+//     try {
+//         const devices = await collection.find({ category: "3" }).toArray();
+//         const statuses = [];
 
-        for (const device of devices) {
-            try {
-                const response = await axios.get(
-                    `${PYTHON_SERVICE_URL}/device/${device.ip}/status`,
-                    { timeout: 3000 }
-                );
+//         for (const device of devices) {
+//             try {
+//                 const response = await axios.get(
+//                     `${PYTHON_SERVICE_URL}/device/${device.ip}/status`,
+//                     { timeout: 3000 }
+//                 );
 
-                statuses.push({
-                    name: device.device_name,
-                    ip: device.ip,
-                    state: response.data.data.device_on ? 'on' : 'off',
-                    timestamp: new Date().toISOString()
-                });
+//                 statuses.push({
+//                     name: device.device_name,
+//                     ip: device.ip,
+//                     state: response.data.data.device_on ? 'on' : 'off',
+//                     timestamp: new Date().toISOString()
+//                 });
 
-                // Small delay between requests
-                await new Promise(resolve => setTimeout(resolve, 200));
+//                 // Small delay between requests
+//                 await new Promise(resolve => setTimeout(resolve, 200));
 
-            } catch(err) {
-                console.error(`Failed to get status for ${device.device_name}:`, err.message);
-                statuses.push({
-                    name: device.device_name,
-                    ip: device.ip,
-                    state: 'error',
-                    error: err.message,
-                    timestamp: new Date().toISOString()
-                });
-            }
-        }
+//             } catch(err) {
+//                 console.error(`Failed to get status for ${device.device_name}:`, err.message);
+//                 statuses.push({
+//                     name: device.device_name,
+//                     ip: device.ip,
+//                     state: 'error',
+//                     error: err.message,
+//                     timestamp: new Date().toISOString()
+//                 });
+//             }
+//         }
 
-        res.json({
-            success: true,
-            devices: statuses,
-            count: statuses.length,
-            timestamp: new Date().toISOString()
-        });
+//         res.json({
+//             success: true,
+//             devices: statuses,
+//             count: statuses.length,
+//             timestamp: new Date().toISOString()
+//         });
 
-    } catch(err) {
-        console.error('Failed to get all device statuses:', err);
-        res.status(500).json({
-            success: false,
-            error: 'Failed to get device statuses',
-            details: err.message
-        });
-    }
-});
+//     } catch(err) {
+//         console.error('Failed to get all device statuses:', err);
+//         res.status(500).json({
+//             success: false,
+//             error: 'Failed to get device statuses',
+//             details: err.message
+//         });
+//     }
+// });
 
 
 // router.post("/wake/:light_name", async (req,res) => {
@@ -365,3 +494,4 @@ router.get("/status/all", async (req, res) => {
 
 
 export default router
+export { checkLightsStatus };

@@ -63,12 +63,15 @@ export default function EditDeviceModal({ device, editError, deleteError, onClos
               onChange={handleChange}
               autoComplete="username"
             />
-
+          </>
+        )}
+        {(form.category === "2" || form.category === "4") && (
+          <>
             <h4 className="popup-label">Password</h4>
             <input
               className="popup-input"
               name="password"
-              placeholder="Computer password"
+              placeholder="Password"
               value={form.password}
               onChange={handleChange}
               autoComplete="current-password"
