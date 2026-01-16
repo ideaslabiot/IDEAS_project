@@ -2,12 +2,13 @@ import cron from 'node-cron';
 import axios from 'axios';
 import db from "./db/conn.mjs"
 import os from "os"
+import { ObjectId } from 'mongodb';
 
 class ScheduleExecutor {
   constructor() {
     this.isRunning = false;
     this.db = null;
-    this.hostname = this.getLocalIPAddress();
+    this.hostname = process.env.HOST || this.getLocalIPAddress();
     this.port = process.env.PORT || 5050;
     this.baseUrl = `http://${this.hostname}:${this.port}`;
 
@@ -106,6 +107,8 @@ class ScheduleExecutor {
 
     try {
       // Execute all devices in parallel
+      console.log(`  → Executing ${schedule.devices.length} device(s)...`);
+      console.log(`  → Schedule devices: ${schedule.devices.map(d => d.device_id).join(', ')}`);
       const devicePromises = schedule.devices.map(deviceInfo =>
         this.executeDeviceAction(deviceInfo, schedule.action)
       );
@@ -117,7 +120,7 @@ class ScheduleExecutor {
           executionResults.push(result.value);
         } else {
           executionResults.push({
-            device_name: schedule.devices[index].device_name,
+            device_id: schedule.devices[index].device_id,
             category: schedule.devices[index].category,
             success: false,
             error: result.reason?.message || 'Unknown error',
@@ -161,7 +164,7 @@ class ScheduleExecutor {
             $set: {
               last_executed: new Date(),
               last_execution_results: [{
-                device_name: 'system',
+                device_id: 'system',
                 category: 'error',
                 success: false,
                 error: err.message,
@@ -177,7 +180,7 @@ class ScheduleExecutor {
 
   async executeDeviceAction(deviceInfo, action) {
     const result = {
-      device_name: deviceInfo.device_name,
+      device_id: deviceInfo.device_id,
       category: deviceInfo.category,
       success: false,
       error: null,
@@ -187,7 +190,7 @@ class ScheduleExecutor {
     try {
       // Get device from database
       const device = await this.db.collection('devices').findOne({ 
-        device_name: deviceInfo.device_name 
+        _id: new ObjectId(deviceInfo.device_id)
       });
       
       if (!device) {
@@ -217,14 +220,14 @@ class ScheduleExecutor {
 
     } catch (err) {
       result.error = err.message;
-      console.error(`  ✗ ${deviceInfo.device_name}: ${err.message}`);
+      console.error(`  ✗ ${deviceInfo.device_id}: ${err.message}`);
     }
 
     return result;
   }
 
   // ============ CATEGORY-SPECIFIC CONTROL FUNCTIONS ============
-
+  // the device_name is taken from the device collection in the database
   async controlSamsungDisplay(device, action) {
     // Category 1: Samsung Display Screens
     try {

@@ -68,18 +68,18 @@ router.post('/schedules', async (req, res) => {
     // Validate all devices exist
     const devicesCollection = db.collection('devices');
     for (const deviceInfo of devices) {
-      const device = await devicesCollection.findOne({ device_name: deviceInfo.device_name });
+      const device = await devicesCollection.findOne({ _id: new ObjectId(deviceInfo.device_id) });
       if (!device) {
         return res.status(404).json({
           success: false,
-          error: `Device "${deviceInfo.device_name}" not found`
+          error: `Device id "${deviceInfo.device_id}" not found`
         });
       }
       // Verify category matches
       if (device.category !== deviceInfo.category) {
         return res.status(400).json({
           success: false,
-          error: `Device "${deviceInfo.device_name}" category mismatch. Expected: ${device.category}, Got: ${deviceInfo.category}`
+          error: `Device id "${deviceInfo.id}" category mismatch. Expected: ${device.category}, Got: ${deviceInfo.category}`
         });
       }
     }
@@ -110,11 +110,11 @@ router.post('/schedules', async (req, res) => {
 // Get all schedules
 router.get('/schedules', async (req, res) => {
   try {
-    const { is_active, device_name, day, action } = req.query;
+    const { is_active, device_id, day, action } = req.query;
 
     const filter = {};
     if (is_active !== undefined) filter.is_active = is_active == 'true';
-    if (device_name) filter['devices.device_name'] = device_name;
+    if (device_id) filter['devices.device_id'] = device_id;
     if (day !== undefined) filter.days_of_week = parseInt(day);
     if (action) filter.action = action;
 
@@ -192,17 +192,17 @@ router.patch('/schedules/:id', async (req, res) => {
     if (updates.devices) {
       const devicesCollection = db.collection('devices');
       for (const deviceInfo of updates.devices) {
-        const device = await devicesCollection.findOne({ device_name: deviceInfo.device_name });
+        const device = await devicesCollection.findOne({ _id: new ObjectId(deviceInfo.device_id) });
         if (!device) {
           return res.status(404).json({
             success: false,
-            error: `Device "${deviceInfo.device_name}" not found`
+            error: `Device id "${deviceInfo.device_id}" not found`
           });
         }
         if (device.category !== deviceInfo.category) {
           return res.status(400).json({
             success: false,
-            error: `Device "${deviceInfo.device_name}" category mismatch`
+            error: `Device id "${deviceInfo.device_id}" category mismatch`
           });
         }
       }
