@@ -4,6 +4,7 @@ import cors from "cors";
 import session from "express-session"
 import MongoStore from "connect-mongo";
 import passport from "passport";
+import os from "os"
 // import "./auth/passport.mjs"
 import 'dotenv/config';
 import 'http';
@@ -22,11 +23,16 @@ import projectorrouter from "./routes/projecterrouter.mjs";
 import screensrouter from "./routes/screensrouter.mjs";
 import devicerouter from "./routes/devicerouter.mjs";
 
+import schedulerouter from "./routes/schedulerouter.mjs"
+
+import { device_refresh } from "./routes/devicesearch.mjs"
+
+import { executor } from "./schedule_executor.mjs";
+
 // CHECK ideascomment (IDC) for changes and notes
 
 const PORT = process.env.PORT || 5050;
-const HOST = process.env.HOST || "localhost";
-
+const hostname = "192.168.1.103"//IDC: replace with wtv static ip we are using
 const app = express();
 
 app.use(cors( {
@@ -62,6 +68,7 @@ app.use("/lights", lightsrouter)
 app.use("/projector", projectorrouter)
 app.use("/computer", pcrouter)
 app.use("/screens", screensrouter)
+app.use("/schedule", schedulerouter)
 
 const options = {
     root: __dirname
@@ -71,6 +78,10 @@ app.get("/", (req, res) => {
 });
 
 //Starting the Express Server
-app.listen(PORT, HOST, () => {
-  console.log(`Server running at http://${HOST}:${PORT}`);
+app.listen(PORT, hostname, () => {
+  console.log(`Server running at http://${hostname}:${PORT}`);
 });
+
+device_refresh();
+
+executor.start();

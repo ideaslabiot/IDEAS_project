@@ -246,3 +246,10 @@
   position: relative;
 }
 
+.error-message {
+  color: red;
+  margin-bottom: 10px;
+  padding: 8px;
+  background-color: #ffebee;
+  border-radius: 4px;
+}

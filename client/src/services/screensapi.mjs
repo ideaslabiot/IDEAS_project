@@ -23,9 +23,14 @@ export async function getScreen(id) {
  * TOGGLE SCREEN POWER (stateless)
  * Backend decides what "on/off" means
  */
-export async function toggleScreenPower(id, action) {
+export async function toggleScreenPower(screen_name, action) {
   // action: "on" | "off"
-  const res = await fetch(`${BASE}/${id}/power/${action}`, {
+  if (action !== "on" && action !== "off") {
+    throw new Error("Invalid action for toggleScreenPower");
+  }
+  action = action === "on" ? "wake" : "shutdown";
+  console.log(`Toggling screen power: ${screen_name} -> ${action}`);
+  const res = await fetch(`${BASE}/${action}/${screen_name}`, {
     method: "POST",
   });
 

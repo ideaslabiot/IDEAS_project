@@ -1,7 +1,7 @@
 import { useState } from "react";
 import CustomSelect from "./CustomSelect.jsx";
 
-export default function AddDeviceModal({ category, onClose, onAdd }) {
+export default function AddDeviceModal({ category, error, onClose, onAdd }) {
   const [form, setForm] = useState({
     device_name: "",
     ip: "",
@@ -20,14 +20,13 @@ export default function AddDeviceModal({ category, onClose, onAdd }) {
     e.preventDefault();
 
     await onAdd({ ...form });
-
-    onClose();
   }
 
   return (
     <div className="popup">
       <div className="popup-content-add" onClick={(e) => e.stopPropagation()}>
         <h2 className="popup-header">New Device</h2>
+        {error && <div className="error-message">{error}</div>}
 
         <h4 className="popup-label">Device Name</h4>
         <input

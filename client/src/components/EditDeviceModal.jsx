@@ -1,7 +1,7 @@
 import { useState } from "react";
 import CustomSelect from "./CustomSelect.jsx";
 
-export default function EditDeviceModal({ device, onClose, onSave, onDelete }) {
+export default function EditDeviceModal({ device, editError, deleteError, onClose, onSave, onDelete }) {
   const [form, setForm] = useState({
     device_name: device.device_name,
     ip: device.ip || "",
@@ -16,7 +16,7 @@ export default function EditDeviceModal({ device, onClose, onSave, onDelete }) {
   }
 
   async function handleSubmit() {
-    await onSave(form);
+    await onSave(device._id, form);
   }
   
   async function handleDelete() {
@@ -27,6 +27,8 @@ export default function EditDeviceModal({ device, onClose, onSave, onDelete }) {
     <div className="popup">
       <div className="popup-content-edit">
         <h2 className="popup-header">Edit Device</h2>
+        {editError && <div className="error-message">{editError}</div>}
+        {deleteError && <div className="error-message">{deleteError}</div>}
 
         <h4 className="popup-label">Device Name</h4>
         <input
@@ -78,12 +80,10 @@ export default function EditDeviceModal({ device, onClose, onSave, onDelete }) {
           <button className="popup-button" onClick={onClose}>Cancel</button>
           <button className="popup-button" onClick={() => { 
             handleSubmit();
-            onClose();
           }}>Save</button>
           <button className="popup-button popup-button-danger" onClick={() => {
             if (window.confirm("Are you sure you want to delete this device?")) {
               handleDelete();
-              onClose();
             }
           }}>Delete</button>
         </div>

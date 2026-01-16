@@ -1,0 +1,118 @@
+.user-page {
+  color: #ffffff;
+  position: relative;
+}
+
+.user-header {
+  font-size: 2.2vw;
+  font-weight: 700;
+  margin: 1.2vw;
+}
+
+.user-icons {
+  position: absolute;
+  top: 1.2vw; /* Matches header top margin */
+  right: 1.2vw; /* Matches header side margin */
+  display: flex;
+  gap: 1.5vw;
+  align-items: center;
+  height: 2.2vw; /* Match header font-size for vertical alignment */
+}
+
+.user-icon {
+  width: 2.5vw;
+  height: 2.5vw;
+  cursor: pointer;
+  transition: transform 0.2s;
+  filter: invert(1);
+}
+
+.user-icon:hover {
+  transform: scale(1.1);
+}
+
+.logout-icon:hover {
+  opacity: 0.8;
+}
+
+.user-info-container {
+  background-color: #2a2a2a;
+  border-radius: 12px;
+  padding: 2.5vw;
+  max-width: 600px;
+  margin: 1.2vw;
+}
+
+.user-info-row {
+  display: flex;
+  align-items: baseline;
+  margin-bottom: 2vh;
+  font-size: 1.8vw;
+  font-family: 'Courier New', monospace;
+}
+
+.user-info-label {
+  color: #ffffff;
+  margin-right: 1vw;
+}
+
+.user-info-value {
+  color: #ffffff;
+}
+
+.user-buttons {
+  display: flex;
+  gap: 1.5vw;
+  margin-top: 5vh;
+}
+
+.user-button {
+  padding: 1vh 2vw;
+  font-size: 1.4vw;
+  background-color: #ffffff;
+  color: #000000;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.user-button:hover {
+  background-color: #e0e0e0;
+  transform: translateY(-2px);
+}
+
+/* Logout Modal */
+.popup-content-logout {
+  background-color: #2a2a2a;
+  padding: 2.5vw;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  position: relative;
+}
+
+.popup-content-logout .popup-header {
+  font-size: 2.5vw;
+  margin-top: 0;
+  margin-bottom: 1vw;
+}
+
+.logout-message {
+  color: #ffffff;
+  font-size: 1.6vw;
+  margin-bottom: 2.5vh;
+  text-align: center;
+}
+
+.popup-content-logout .popup-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1.5vw;
+  margin-top: 2vh;
+}
+
+.popup-content-logout .popup-button {
+  flex: 0 1 auto;
+  min-width: 120px;
+}
