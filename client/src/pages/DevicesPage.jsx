@@ -53,7 +53,7 @@ export default function DevicesPage() {
       } else if (device.category === "3") {
         // Tapo Lights
         const action = device.state === "ON" ? "shutdown" : "wake";
-        response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/tapo/${action}/${device.device_name}`, {
+        response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/lights/${action}/${device.device_name}`, {
           method: "POST"
         });
       } else if (device.category === "4") {
