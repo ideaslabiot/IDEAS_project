@@ -118,7 +118,7 @@ router.post("/wake/:screen_name", async (req, res) => {
   }
 
   // Lock device
-  lockDevice(screen._id.toString(), 15000);
+  lockDevice(screen._id.toString(), 20000); //increase from 15sec to 20sec to allow more pending time because screen takes some time to turn on
 
   try {
     const display = new SamsungMDC(screen.ip);

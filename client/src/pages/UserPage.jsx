@@ -39,9 +39,9 @@ export default function UserPage() {
         </div>
 
         <div className="user-buttons">
-          <button className="user-button">Forgot Password?</button>
+          <button className="user-button">Edit User Details</button>
           <button className="user-button" onClick={() => setShowLogout(true)}>
-            Sign out of account
+            Sign out
           </button>
         </div>
       </div>

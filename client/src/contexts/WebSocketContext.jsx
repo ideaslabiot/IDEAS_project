@@ -1,6 +1,6 @@
 // contexts/WebSocketContext.jsx
 import { createContext, useContext, useState, useCallback } from 'react';
-import { useDeviceWebSocket } from '../hooks/useDeviceWebSocket';
+import { useDeviceWebSocket } from '../hooks/useDeviceWebSocket.js';
 
 const WebSocketContext = createContext();
 

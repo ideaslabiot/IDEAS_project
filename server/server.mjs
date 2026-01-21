@@ -7,7 +7,7 @@ import passport from "passport";
 import os from "os"
 import { createServer } from "http";
 import { WebSocketServer } from "ws";
-// import "./auth/passport.mjs"
+import "./auth/passport.mjs"
 import 'dotenv/config';
 import 'http';
 import { startBackgroundSync } from "./backgroundSync.mjs";
@@ -20,7 +20,7 @@ import path from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// import userrouter from "./routes/userrouter.mjs";
+import userrouter from "./routes/userrouter.mjs";
 import lightsrouter from "./routes/lightsrouter.mjs";
 import pcrouter from "./routes/pcrouter.mjs";
 import projectorrouter from "./routes/projectorrouter.mjs";
@@ -47,26 +47,25 @@ app.use(express.json());
 app.use(urlencoded({extended: true}))
 app.use(express.static(path.join(__dirname, "..", "public")));
 
-// app.use(session({
-//     secret: process.env.SESSION_SECRET,
-//     resave: false,
-//     saveUninitialized: false,
-//     store: MongoStore.create({
-//         mongoUrl: 'mongodb://localhost:27017/ideas_db',
-//         autoRemove: 'native'
-//     }),
-//     cookie: {
-//         maxAge: 24 * 60 * 60 * 1000, //24 hours till it will expire
-//         sameSite: 'strict'
-//     }
-// }))
+app.use(session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({
+        mongoUrl: 'mongodb://localhost:27017/ideas_db',
+        autoRemove: 'native'
+    }),
+    cookie: {
+        maxAge: 24 * 60 * 60 * 1000, //24 hours till it will expire
+        sameSite: 'strict'
+    }
+}))
  
-// app.use(passport.initialize())
-// app.use(passport.session())
-//IDC disable passportjs for auth for now
+app.use(passport.initialize())
+app.use(passport.session())
 
 app.use(express.static(path.join(__dirname, '../client/dist')));
-// app.use("/users", userrouter);
+app.use("/users", userrouter);
 app.use("/device",devicerouter)
 app.use("/lights", lightsrouter)
 app.use("/projector", projectorrouter)
