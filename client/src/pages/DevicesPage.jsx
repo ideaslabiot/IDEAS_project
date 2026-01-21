@@ -12,7 +12,7 @@ import "../styles/device.css";
 
 const CATEGORY_LABELS = {
   "0": "All",
-  "1": "TV / Screens",
+  "1": "TV/Screens",
   "2": "Computers",
   "3": "Lights",
   "4": "Projectors",
