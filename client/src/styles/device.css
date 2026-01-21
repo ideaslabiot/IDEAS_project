@@ -165,41 +165,46 @@
   z-index: 999; /* Layer (Makes popup above other content) */
 }
 
-.popup-content-add {
+.popup-content-padding {
+  padding-bottom: 4vh;
   background: #fff;
-  color: #000;
-  padding: 2vw;
   border-radius: 12px;
-  width: 22vw;
-  align-items: center;
   display: flex;
   flex-direction: column;
-  z-index: 1001;
-}
-
-.popup-content-edit {
-  background: #fff;
-  color: #000;
-  padding: 2vw;
-  border-radius: 12px;
-  width: 28vw;
   align-items: center;
-  display: flex;
-  flex-direction: column;
-  z-index: 1001;
 }
 
 .popup-header {
   font-size: 2.5vw;
-  margin-top: 0;
-  margin-bottom: 1vw;
+  margin-top: 5vh;
+  margin-bottom: 3vh;
+  color: #000;
+}
+
+.popup-content{
+  color: #000;
+  padding: 2vw;
+  padding-top: 0;
+  border-radius: 12px;
+  width: 28vw;
+  height: 50vh;
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  z-index: 1001;
+  overflow: hidden;
+  overflow-y: auto;
 }
 
 .popup-label {
-  margin-top: 1vw;
+  margin-top: 2vh;
   font-size: 1.8vw;
   font-weight: 100;
   margin-bottom: 1vh;
+}
+
+.popup-top-label {
+  margin-top: 0;
 }
 
 .popup-input {

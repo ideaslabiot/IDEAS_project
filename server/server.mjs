@@ -36,7 +36,7 @@ import { executor } from "./schedule_executor.mjs";
 // CHECK ideascomment (IDC) for changes and notes
 
 const PORT = process.env.PORT || 5050;
-const hostname = "192.168.1.104"//IDC: replace with wtv static ip we are using
+const hostname = "192.168.1.108"//IDC: replace with wtv static ip we are using
 const app = express();
 
 app.use(cors( {

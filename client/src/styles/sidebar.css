@@ -29,7 +29,7 @@
   align-items: center;
   gap: 1.2vw;
   padding: 1vw 1.2vw;
-  font-size: 2vw;
+  font-size: 1.3vw;
   border-radius: 0.8vw;
   color: #ffffff;
   text-decoration: none;
@@ -37,8 +37,8 @@
 }
 
 .sidebar-link img {
-  width: 3vw;
-  height: 3vw;
+  width: 2.5vw;
+  height: 2.5vw;
   filter: invert(1);
 }
 
@@ -58,6 +58,7 @@
 
 .sidebar-subtitle {
   font-size: 2vw;
+  margin-top: 5%;
   margin-bottom: 0%;
   color: #ffffff;
 }
@@ -82,11 +83,9 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1vw;
-  margin-top: 1vw;
 }
 
 .sidebar-batch{
   margin-top: 2vw;
   overflow-y: auto;
-  flex-grow: 1; /* This makes it scroll */
 }
