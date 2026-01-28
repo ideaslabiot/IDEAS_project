@@ -1,38 +1,15 @@
 .user-page {
   color: #ffffff;
-  position: relative;
+  padding-left: 1vw;
+  overflow: hidden;
+  overflow-y: auto;
 }
 
 .user-header {
-  font-size: 2.2vw;
+  font-size: 2vw;
   font-weight: 700;
-  margin: 1.2vw;
-}
-
-.user-icons {
-  position: absolute;
-  top: 1.2vw; /* Matches header top margin */
-  right: 1.2vw; /* Matches header side margin */
-  display: flex;
-  gap: 1.5vw;
-  align-items: center;
-  height: 2.2vw; /* Match header font-size for vertical alignment */
-}
-
-.user-icon {
-  width: 2.5vw;
-  height: 2.5vw;
-  cursor: pointer;
-  transition: transform 0.2s;
-  filter: invert(1);
-}
-
-.user-icon:hover {
-  transform: scale(1.1);
-}
-
-.logout-icon:hover {
-  opacity: 0.8;
+  margin-bottom: 1.2vw;
+  color: #ffffff;
 }
 
 .user-info-container {

@@ -7,6 +7,7 @@ import { useWebSocket } from "../contexts/WebSocketContext";
 import DeviceCard from "../components/DeviceCard";
 import AddDeviceModal from "../components/AddDeviceModal";
 import EditDeviceModal from "../components/EditDeviceModal";
+import UserIcons from "../components/UserIcons";
 
 import "../styles/device.css";
 
@@ -145,6 +146,8 @@ export default function DevicesPage() {
         Devices
         {!connected && <span className="connection-status"> (Reconnecting...)</span>}
       </h2>
+
+      <UserIcons />
 
       {/* CATEGORY TABS */}
       <div className="device-tabs">

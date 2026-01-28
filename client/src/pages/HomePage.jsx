@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useWebSocket } from "../contexts/WebSocketContext";
 import { useParams, useNavigate } from "react-router-dom";
+import UserIcons from "../components/UserIcons";
 
 import '../styles/home.css';
 
@@ -105,7 +106,9 @@ export default function HomePage() {
 
   return (
     <div className="home-page">
-      <p className="home-header">Home</p>
+      <h2 className="home-header">Home</h2>
+
+      <UserIcons />
 
       {/* RECENTLY USED */}
       <div className="recently-used-section">

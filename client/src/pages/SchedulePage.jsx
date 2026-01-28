@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { getDevicesByCategory } from '../services/deviceapi.mjs';
 import { createSchedule, getSchedules, deleteSchedule, updateSchedule } from '../services/scheduleapi.mjs';
 import { useParams, useNavigate } from "react-router-dom";
+import UserIcons from "../components/UserIcons";
 import '../styles/schedule.css';
 
 const CATEGORY_LABELS = {
@@ -245,6 +246,8 @@ export default function DeviceScheduler() {
   return (
     <div className="schedule-page">
       <h2 className="schedule-header">Schedules</h2>
+
+      <UserIcons />
 
       {/* ERROR ALERT */}
       {error && (

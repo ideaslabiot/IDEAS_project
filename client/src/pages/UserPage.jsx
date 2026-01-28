@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import LogoutModal from "../components/LogoutModal";
 import EditUserModal from "../components/EditUserModal";
 import ProfileIcon from "../assets/Profile.svg";
-import LogoutIcon from "../assets/Logout.svg";
 import { useNavigate } from "react-router-dom";
 import "../styles/user.css";
+import UserIcons from '../components/UserIcons';
 
 export default function UserPage() {
   const [showLogout, setShowLogout] = useState(false);
@@ -54,15 +54,7 @@ export default function UserPage() {
     <div className="user-page">
       <h2 className="user-header">User</h2>
       
-      <div className="user-icons">
-        <img src={ProfileIcon} alt="Profile" className="user-icon" />
-        <img 
-          src={LogoutIcon} 
-          alt="Logout" 
-          className="user-icon logout-icon"
-          onClick={() => setShowLogout(true)}
-        />
-      </div>
+      <UserIcons />
 
       <div className="user-info-container">
         <div className="user-info-row">

@@ -26,3 +26,30 @@ html, body, #root {
   overflow-y: auto;
   padding: 1.2vw;
 }
+
+/* USER ICONS - Global */
+.user-icons {
+  position: absolute;
+  top: 6vh;
+  right: 3vw;
+  display: flex;
+  gap: 1.5vw;
+  align-items: center;
+  height: 2.2vw;
+}
+
+.user-icon {
+  width: 2.5vw;
+  height: 2.5vw;
+  cursor: pointer;
+  transition: transform 0.2s;
+  filter: invert(1);
+}
+
+.user-icon:hover {
+  transform: scale(1.1);
+}
+
+.logout-icon:hover {
+  opacity: 0.8;
+}
