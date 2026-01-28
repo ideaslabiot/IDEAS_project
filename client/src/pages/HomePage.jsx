@@ -1,7 +1,6 @@
 // pages/HomePage.jsx
 import { useState, useEffect } from 'react';
 import { useWebSocket } from "../contexts/WebSocketContext";
-import PowerButton from "../assets/Power.svg";
 import '../styles/home.css';
 
 const CATEGORY_LABELS = {
@@ -117,13 +116,6 @@ export default function HomePage() {
                   {/* HEADER */}
                   <div className="device-card-header">
                     <div />
-                    <div className="device-buttons">
-                      <img
-                        src={PowerButton}
-                        alt="Power"
-                        className={`icon-button ${isOn ? "icon-on" : "icon-off"}`}
-                      />
-                    </div>
                   </div>
 
                   {/* FOOTER */}

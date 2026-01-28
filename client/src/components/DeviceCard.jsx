@@ -1,5 +1,4 @@
 import { useState } from "react";
-import PowerButton from "../assets/Power.svg";
 import MenuButton from "../assets/Menu.svg";
 
 export default function DeviceCard({ device, onToggle, onEdit }) {
@@ -47,11 +46,6 @@ export default function DeviceCard({ device, onToggle, onEdit }) {
               e.stopPropagation();
               onEdit();
             }}
-          />
-          <img
-            src={PowerButton}
-            alt="Power"
-            className={`icon-button ${isOn ? "icon-on" : "icon-off"}`}
           />
         </div>
       </div>
