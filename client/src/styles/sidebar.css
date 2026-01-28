@@ -64,13 +64,31 @@
 }
 
 /* BATCH BUTTON */
+.batch-category {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5vw;
+}
+
+.batch-label {
+  font-size: 1vw;
+  color: #fff;
+  font-weight: 500;
+}
+
+.batch-controls {
+  display: flex;
+  gap: 0.5vw;
+}
+
 .batch-btn {
+  flex: 1;
   background: #3a3a3a;
   border: none;
-  border-radius: 1vw;
-  padding: 1.2vw;
+  border-radius: 0.5vw;
+  padding: 0.8vw;
   color: #fff;
-  font-size: 1.0vw;
+  font-size: 0.9vw;
   cursor: pointer;
   transition: background 0.2s;
 }
@@ -79,13 +97,34 @@
   background: #4a4a4a;
 }
 
+.batch-btn.batch-on {
+  background: rgba(74, 222, 128, 0.2);
+  color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+.batch-btn.batch-on:hover {
+  background: rgba(74, 222, 128, 0.3);
+}
+
+.batch-btn.batch-off {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.batch-btn.batch-off:hover {
+  background: rgba(239, 68, 68, 0.3);
+}
+
 .batch-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr;
   gap: 1vw;
 }
 
 .sidebar-batch{
   margin-top: 2vw;
   overflow-y: auto;
+  padding-bottom: 5vh;
 }

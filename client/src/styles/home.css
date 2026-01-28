@@ -1,0 +1,146 @@
+/* HOME PAGE */
+.home-page {
+  color: #ffffff;
+  padding-left: 1vw;
+  overflow: hidden;
+  overflow-y: auto;
+}
+
+.home-header {
+  font-size: 2vw;
+  font-weight: 700;
+  margin-bottom: 1.2vw;
+  color: #ffffff;
+}
+
+/* RECENTLY USED SECTION */
+.recently-used-section {
+  margin-bottom: 3rem;
+}
+
+.section-title {
+  font-size: 1.5vw;
+  margin-top: 5vh;
+  margin-bottom: 1rem;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+}
+
+.recently-used-grid {
+  display: grid;
+  grid-template-columns: repeat(4, min(11vw));
+  gap: 6vw;
+}
+
+.recently-used-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 140px;
+  position: relative;
+}
+
+.recently-used-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.recently-used-card.empty {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  cursor: default;
+}
+
+.recently-used-card.empty:hover {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.1);
+  transform: none;
+}
+
+.empty-text {
+  color: #666;
+  font-size: 0.85rem;
+}
+
+/* STATUS OVERVIEW SECTION */
+.status-overview-section {
+  margin-bottom: 2rem;
+}
+
+.status-overview {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1vw;
+  margin-bottom: 2rem;
+}
+
+.status-category {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+
+.status-category-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.status-count {
+  font-size: 0.85rem;
+  color: #fff;
+  font-weight: 500;
+}
+
+.status-devices-grid {
+  display: grid;
+  grid-template-columns: repeat(1);
+  gap: 0.75rem;
+}
+
+.device-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 0.3rem;
+  font-size: 0.85rem;
+}
+
+.device-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.device-status-dot.on {
+  background: #4ade80;
+}
+
+.device-status-dot.off {
+  background: #ef4444;
+}
+
+.device-status-name {
+  color: #ffffff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
