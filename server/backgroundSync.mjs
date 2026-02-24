@@ -11,9 +11,9 @@ const collection = db.collection("devices");
 
 // Configuration
 const SYNC_CONFIG = {
-  "1": { pendingTimeout: 60000, checkInterval: 10000 }, // Screens
+  "1": { pendingTimeout: 30000, checkInterval: 10000 }, // Screens
   "2": { pendingTimeout: 120000, checkInterval: 15000 }, // Computers
-  "3": { pendingTimeout: 30000, checkInterval: 10000 }, // Tapo
+  "3": { pendingTimeout: 15000, checkInterval: 10000 }, // Tapo
   "4": { pendingTimeout: 40000, checkInterval: 15000 }, // Projectors
 };
 

@@ -6,7 +6,7 @@ import UserIcons from "../components/UserIcons";
 import '../styles/schedule.css';
 
 const CATEGORY_LABELS = {
-  '1': 'Samsung Display',
+  '1': 'TV/Screens',
   '2': 'PC',
   '3': 'Lights',
   '4': 'Projector'
