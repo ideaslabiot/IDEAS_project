@@ -1,4 +1,4 @@
-Device setup instructions for configuring devices for use in the application
+Device setup instructions for configuring devices for use in the application:
 
 Tapo P110 Smart Plug Lights (or other plugs as listed in the 'tapo' package) ----
 1. If using existing account, login to the TP-Link Tapo application with the account details in the .env file in python_services
